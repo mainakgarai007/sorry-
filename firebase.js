@@ -68,6 +68,10 @@
     const style = document.createElement("style");
     style.textContent = `
       #sorry-message-open{position:fixed;right:16px;top:14px;z-index:10001;border:0;border-radius:999px;padding:11px 15px;background:#7c58a6;color:#fff;font-weight:700;box-shadow:0 6px 22px #49315c30}
+      #sorry-tools-fab{position:fixed;right:16px;bottom:18px;z-index:10001;width:48px;height:48px;border:0;border-radius:50%;background:#7c58a6;color:#fff;font-size:23px;box-shadow:0 6px 22px #49315c30}
+      #sorry-tools-menu{position:fixed;right:16px;bottom:74px;z-index:10001;width:min(230px,calc(100vw - 32px));display:none;padding:9px;background:#fff8ff;color:#352642;border:1px solid #e5d6ed;border-radius:18px;box-shadow:0 12px 36px #49315c30}
+      #sorry-tools-menu button{display:block;width:100%;text-align:left;border:0;border-radius:12px;padding:12px;background:transparent;color:#352642;font-weight:700}
+      #sorry-tools-menu button:hover{background:#f0e5f5}
       #sorry-message-modal{position:fixed;inset:0;z-index:10002;background:#24172b80;display:none;align-items:center;justify-content:center;padding:18px;font-family:Quicksand,sans-serif}
       #sorry-message-modal .sm-card{width:min(420px,100%);background:#fff8ff;color:#352642;border-radius:22px;padding:20px;box-shadow:0 20px 60px #170d2470}
       #sorry-message-modal .sm-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
@@ -83,6 +87,25 @@
     open.type = "button";
     open.textContent = "💌 Message";
     document.body.appendChild(open);
+
+    const fab = document.createElement("button");
+    fab.id = "sorry-tools-fab";
+    fab.type = "button";
+    fab.setAttribute("aria-label", "More options");
+    fab.textContent = "↑";
+    document.body.appendChild(fab);
+    const menu = document.createElement("div");
+    menu.id = "sorry-tools-menu";
+    menu.innerHTML = '<button type="button" data-action="create">✨ Create your own</button><button type="button" data-action="feedback">💬 Feedback</button><button type="button" data-action="close">✕ Close</button>';
+    document.body.appendChild(menu);
+    fab.addEventListener("click", () => { menu.style.display = menu.style.display === "block" ? "none" : "block"; });
+    menu.addEventListener("click", event => {
+      const action = event.target.closest("button")?.dataset.action;
+      if (action === "create") location.href = new URL("admin.html", location.href).href;
+      if (action === "feedback") window.open("https://github.com/mainakgarai007/sorry-/issues/new", "_blank", "noopener");
+      if (action === "close") menu.style.display = "none";
+    });
+
     const modal = document.createElement("div");
     modal.id = "sorry-message-modal";
     modal.innerHTML = '<section class="sm-card" role="dialog" aria-modal="true" aria-labelledby="sm-title"><div class="sm-head"><strong id="sm-title">Send a message 💌</strong><button class="sm-close" type="button" aria-label="Close">×</button></div><p>Leave a message for the creator. Replies are not available here.</p><textarea maxlength="1000" placeholder="Write your message..." aria-label="Your message"></textarea><button class="sm-send" type="button">Send message</button><div class="sm-status" role="status"></div></section>';
