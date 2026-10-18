@@ -20,11 +20,22 @@
       (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(36).slice(2));
     sessionStorage.setItem("sorrySessionId", sessionId);
 
+    // Local-only analytics work without changing Firestore rules. These records stay in this browser.
+    function trackLocal(type, extra = {}) {
+      try {
+        const key = "sorryLocalEventsV1";
+        const events = JSON.parse(localStorage.getItem(key) || "[]");
+        events.push({ type: String(type).slice(0, 80), extra, time: new Date().toISOString(), campaignId, sessionId });
+        localStorage.setItem(key, JSON.stringify(events.slice(-500)));
+      } catch (error) {}
+    }
+
     window.sorryFirebase = {
       db,
       campaignId,
       sessionId,
       track(type, extra = {}) {
+        trackLocal(type, extra);
         return db.collection("sorryEvents").add({
           app: "sorry",
           campaignId,
