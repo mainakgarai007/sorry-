@@ -52,7 +52,8 @@ button{border:0;border-radius:13px;padding:12px 15px;font:700 15px system-ui;cur
 <div style="padding:14px;border:1px solid var(--line);border-radius:14px;background:#fff"><div class="hint">Cloud analytics</div><strong id="dashCloudState">Not connected</strong></div>
 </div>
 <p id="dashPrivacyNote" class="hint">Local analytics include only visits and clicks recorded in this same browser on this device. They cannot show other people's visits unless secure cloud access is configured.</p>
-<div id="localAnalytics" style="margin-top:12px"><h4 style="margin:8px 0">Recent local activity</h4><p class="hint">No local activity yet.</p></div>
+<div id="buttonResponses" style="margin-top:14px"><h4 style="margin:8px 0">🖱️ Button clicks & responses</h4><p class="hint">No button clicks recorded yet.</p></div>
+<div id="localAnalytics" style="margin-top:14px"><h4 style="margin:8px 0">🕘 Recent local activity</h4><p class="hint">No local activity yet.</p></div>
 <div class="actions"><button class="secondary" type="button" id="refreshDashboard">↻ Refresh dashboard</button><button class="secondary" type="button" id="openFirebaseGuide">Firebase setup guide</button></div>
 <div id="dashDetails" class="status" style="display:block">Cloud visitor analytics: not connected. Public read access to private messages or visitor records will not be enabled.</div>
 </fieldset>
@@ -131,20 +132,59 @@ function refreshDashboard(){
  const contact=(document.getElementById('contactUrl')?.value||'').trim();
  document.getElementById('dashContactState').textContent=contact?'Configured':'Not set';
  const events=[];try{events.push(...JSON.parse(localStorage.getItem('sorryLocalEventsV1')||'[]'))}catch(e){}
- document.getElementById('dashPageViews').textContent=String(events.filter(e=>e.type==='page_reached'||e.type==='link_opened').length);
- document.getElementById('dashButtonClicks').textContent=String(events.filter(e=>e.type==='button_click').length);
- const cloud=document.getElementById('dashCloudState');
- cloud.textContent='Not connected';
+ const pageEvents=events.filter(e=>e.type==='page_reached'||e.type==='link_opened');
+ const clicks=events.filter(e=>e.type==='button_click');
+ document.getElementById('dashPageViews').textContent=String(pageEvents.length);
+ document.getElementById('dashButtonClicks').textContent=String(clicks.length);
+ document.getElementById('dashCloudState').textContent='Not connected';
+ const pageNames={'screen-1':'Page 1 · First question','screen-2':'Page 2 · Follow-up','screen-sad':'Page 3 · Sad response','screen-super-sad':'Page 4 · Very sad response','screen-3':'Final page'};
+ const buttonNames={
+  'btn-no':'No, I forgive you · Page 1','btn-yes':'Yes / still upset · Page 1',
+  'btn-idk':'Not sure yet · Page 2','btn-forgive-final':'Forgive · Page 2',
+  'btn-sad-forgive':'Forgive · Sad page','btn-sad-mad':'Still upset · Sad page',
+  'btn-super-forgive':'Forgive · Very sad page','btn-super-mad':'Still upset · Very sad page',
+  'btn-infinite-love':'Love button · Final page','btn-contact-creator':'Contact creator',
+  'sorry-message-open':'Open message form','sorry-tools-fab':'Open extra options'
+ };
+ const nicePage=id=>pageNames[id]||String(id||'Unknown page').replace(/^screen-/,'Page ');
+ const niceButton=e=>(buttonNames[e.extra?.buttonId]||e.extra?.buttonText||e.extra?.buttonId||'Unknown button');
+ const responses=document.getElementById('buttonResponses');
+ responses.innerHTML='<h4 style="margin:8px 0">🖱️ Button clicks & responses</h4><p class="hint">Each click shows the button pressed and the next page recorded, when available.</p>';
+ if(!clicks.length){
+  responses.insertAdjacentHTML('beforeend','<p class="hint">No button clicks recorded yet. Open the public Sorry page in this same browser, tap a button, then return here and refresh.</p>');
+ }else{
+  clicks.slice(-20).reverse().forEach(event=>{
+   const idx=events.indexOf(event);
+   const nextPage=events.slice(idx+1).find(e=>e.type==='page_reached');
+   const card=document.createElement('div');
+   card.style.cssText='border:1px solid var(--line);border-radius:14px;background:#fff;padding:12px;margin:9px 0;box-shadow:0 3px 12px #5e367510';
+   const head=document.createElement('div');
+   head.style.cssText='display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap';
+   const title=document.createElement('strong');title.textContent=niceButton(event);head.appendChild(title);
+   const time=document.createElement('span');time.className='hint';const date=new Date(event.time);time.textContent=Number.isNaN(date.getTime())?'':date.toLocaleString();head.appendChild(time);
+   card.appendChild(head);
+   const pressed=document.createElement('p');pressed.style.cssText='margin:8px 0 4px;font-size:13px';pressed.textContent='Button text: '+(event.extra?.buttonText||niceButton(event));card.appendChild(pressed);
+   const from=document.createElement('p');from.style.cssText='margin:4px 0;font-size:13px';from.textContent='Pressed on: '+nicePage(event.extra?.page);card.appendChild(from);
+   const result=document.createElement('p');result.style.cssText='margin:8px 0 0;padding:9px 10px;border-radius:10px;background:#f4eaf8;font-size:13px;font-weight:700';
+   result.textContent=nextPage?'Response: moved to '+nicePage(nextPage.extra?.page):'Response: no next-page event recorded';
+   card.appendChild(result);responses.appendChild(card);
+  });
+ }
  const activity=document.getElementById('localAnalytics');
- activity.innerHTML='<h4 style="margin:8px 0">Recent local activity</h4>';
- if(!events.length){activity.insertAdjacentHTML('beforeend','<p class="hint">No local activity yet. Open the public sorry page in this same browser and interact with it to test tracking.</p>');}
- else events.slice(-8).reverse().forEach(event=>{
-  const row=document.createElement('p');row.className='hint';
+ activity.innerHTML='<h4 style="margin:8px 0">🕘 Recent local activity</h4>';
+ if(!events.length){activity.insertAdjacentHTML('beforeend','<p class="hint">No local activity yet. Open the public Sorry page in this same browser and interact with it to test tracking.</p>');}
+ else events.slice(-10).reverse().forEach(event=>{
+  const row=document.createElement('div');row.style.cssText='padding:9px 11px;border-bottom:1px solid var(--line);font-size:13px;overflow-wrap:anywhere';
   const date=new Date(event.time);
-  row.textContent=(Number.isNaN(date.getTime())?'':date.toLocaleString()+' — ')+event.type+(event.extra&&event.extra.page?' · '+event.extra.page:'')+(event.extra&&event.extra.buttonId?' · '+event.extra.buttonId:'');
-  activity.appendChild(row);
+  const stamp=Number.isNaN(date.getTime())?'':date.toLocaleString()+' · ';
+  let detail=event.type.replaceAll('_',' ');
+  if(event.type==='button_click')detail='Button clicked: '+(event.extra?.buttonText||event.extra?.buttonId||'Unknown');
+  else if(event.type==='page_reached')detail='Reached '+nicePage(event.extra?.page);
+  else if(event.type==='link_opened')detail='Sorry link opened';
+  else if(event.type==='message_popup_opened')detail='Message form opened';
+  row.textContent=stamp+detail;activity.appendChild(row);
  });
- document.getElementById('dashDetails').textContent='Local analytics only. Firestore cloud analytics and messages are not connected; no Firestore rules were changed.';
+ document.getElementById('dashDetails').textContent='Local analytics only. Button responses are inferred from the next page event in this same browser. Firestore cloud analytics and messages are not connected; no Firestore rules were changed.';
 }
 document.getElementById('refreshDashboard').addEventListener('click',refreshDashboard);
 document.getElementById('openFirebaseGuide').addEventListener('click',()=>window.open('https://github.com/mainakgarai007/sorry-/blob/main/FIREBASE-SETUP.md','_blank','noopener'));
