@@ -49,14 +49,23 @@
       const label=typeof data.contactLabel==='string'&&data.contactLabel.trim()?data.contactLabel.trim():'Contact me';
       window.sorryContactUrl=safeContact;
       window.sorryContactLabel=label.slice(0,80);
-      contactButton.hidden=!safeContact;
-      if(safeContact){contactButton.href=safeContact;contactButton.setAttribute('target','_blank');}
-      contactButton.textContent=window.sorryContactLabel;
-      const messageButton=document.getElementById('sorry-message-open');
-      if(messageButton){
-        messageButton.hidden=!safeContact;
-        messageButton.textContent='💌 '+window.sorryContactLabel;
-      }
+      window.applySorryContact = function(url, buttonLabel) {
+        const valid = typeof url === 'string' && url.trim() !== '';
+        window.sorryContactUrl = valid ? url : '';
+        window.sorryContactLabel = (buttonLabel || 'Contact me').slice(0,80);
+        const finalButton = document.getElementById('btn-contact-creator');
+        if(finalButton){
+          finalButton.hidden = !valid;
+          finalButton.textContent = window.sorryContactLabel;
+          if(valid){ finalButton.href = window.sorryContactUrl; finalButton.setAttribute('target','_blank'); }
+        }
+        const messageButton = document.getElementById('sorry-message-open');
+        if(messageButton){
+          messageButton.hidden = !valid;
+          messageButton.textContent = '💌 ' + window.sorryContactLabel;
+        }
+      };
+      window.applySorryContact(safeContact, label);
     }
   } catch(error) {
     console.error('Custom sorry link could not be read.',error);
