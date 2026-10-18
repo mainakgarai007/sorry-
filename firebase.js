@@ -138,8 +138,8 @@
       if (window.sorryFirebase?.track) window.sorryFirebase.track("contact_button_clicked", { method: window.sorryContactLabel || "Contact" });
       const parsed = (() => { try { return new URL(target, location.href); } catch (e) { return null; } })();
       if (parsed && ["http:", "https:", "mailto:", "tel:", "sms:"].includes(parsed.protocol)) {
-        if (["mailto:", "tel:", "sms:"].includes(parsed.protocol)) location.href = parsed.href;
-        else window.open(parsed.href, "_blank", "noopener,noreferrer");
+        // Same-tab navigation avoids mobile popup blockers.
+        location.assign(parsed.href);
       }
     });
     modal.querySelector(".sm-close").addEventListener("click", close);
