@@ -80,7 +80,6 @@ const key='sorryCreatorDraftV1', linksKey='sorryCreatedLinksV1';
 function values(){return Object.fromEntries(fields.map(el=>[el.dataset.key,el.value.trim()]));}
 function save(){try{localStorage.setItem(key,JSON.stringify(values()));}catch(e){}}
 try{const saved=JSON.parse(localStorage.getItem(key)||'null');if(saved)fields.forEach(el=>{if(typeof saved[el.dataset.key]==='string')el.value=saved[el.dataset.key];});}catch(e){}
-syncContact();
 form.addEventListener('input',save);
 const contactMode=document.getElementById('contactMode');
 const contactTarget=document.getElementById('contactTarget');
@@ -121,6 +120,7 @@ function syncContact(){
 }
 contactMode.addEventListener('change',()=>{syncContact();save();});
 contactTarget.addEventListener('input',()=>{syncContact();save();});
+syncContact();
 
 function toB64Url(bytes){let binary='';for(let i=0;i<bytes.length;i++)binary+=String.fromCharCode(bytes[i]);return btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
 async function encodePayload(obj){
