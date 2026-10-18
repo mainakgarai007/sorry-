@@ -108,17 +108,28 @@ btnSadMad.addEventListener('click', () => {
   screenSuperSad.classList.remove('hidden'); screenSuperSad.classList.add('active');
 });
 
-// The forgiveness button on the super-sad screen was missing its navigation handler.
-btnSuperForgive.addEventListener('click', () => {
+// Reliable navigation from the super-sad screen to the final screen.
+// Shared function makes the transition idempotent if mobile emits multiple events.
+function goToFinalScreen() {
+  if (!screenSuperSad || !screen3 || screenSuperSad.classList.contains('hidden')) return;
   decorSuperSad.classList.add('hidden');
   decor3.classList.remove('hidden');
-  document.body.classList.remove('screen-super-sad-mode');
+  document.body.classList.remove('screen-super-sad-mode', 'screen-2-mode', 'screen-sad-mode');
   document.body.classList.add('screen-3-mode');
   screenSuperSad.classList.remove('active');
   screenSuperSad.classList.add('hidden');
   screen3.classList.remove('hidden');
   screen3.classList.add('active');
-});
+  window.scrollTo(0, 0);
+}
+btnSuperForgive.addEventListener('click', goToFinalScreen);
+btnSuperForgive.addEventListener('pointerup', goToFinalScreen);
+// Delegated fallback helps if other scripts alter button listeners.
+document.addEventListener('click', event => {
+  if (event.target && event.target.closest && event.target.closest('#btn-super-forgive')) {
+    goToFinalScreen();
+  }
+}, true);
 
 const phrasesSuper = [
   "Look at my tears! 🌊😭", "I'll do all your chores! 🧹🥺",
