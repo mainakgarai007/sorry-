@@ -43,6 +43,16 @@ button{border:0;border-radius:13px;padding:12px 15px;font:700 15px system-ui;cur
 <label for="contactUrl">Optional contact link (website, WhatsApp URL, mailto:, or tel:)</label><input id="contactUrl" data-key="contactUrl" maxlength="500" placeholder="https://… or mailto:you@example.com">
 <p class="hint">Leave the contact link blank to keep the button hidden on the final page.</p></fieldset>
 <div class="actions"><button class="primary" type="button" id="makeLink">🔗 Create share link</button><button class="secondary" type="button" id="preview">👀 Preview</button><button class="secondary" type="button" id="reset">Reset default text</button></div>
+<fieldset id="creatorDashboard"><legend>📊 Creator Dashboard</legend>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px">
+<div style="padding:14px;border:1px solid var(--line);border-radius:14px;background:#fff"><div class="hint">Saved links on this device</div><strong id="dashLinkCount" style="font-size:25px">0</strong></div>
+<div style="padding:14px;border:1px solid var(--line);border-radius:14px;background:#fff"><div class="hint">Contact button</div><strong id="dashContactState">Not set</strong></div>
+<div style="padding:14px;border:1px solid var(--line);border-radius:14px;background:#fff"><div class="hint">Cloud analytics</div><strong id="dashCloudState">Not connected</strong></div>
+</div>
+<p id="dashPrivacyNote" class="hint">This dashboard currently shows only data stored on this phone. Visitor progress and messages are not displayed unless secure cloud access is configured.</p>
+<div class="actions"><button class="secondary" type="button" id="refreshDashboard">↻ Refresh dashboard</button><button class="secondary" type="button" id="openFirebaseGuide">Firebase setup guide</button></div>
+<div id="dashDetails" class="status" style="display:block">Cloud visitor analytics: not connected. Public read access to private messages or visitor records will not be enabled.</div>
+</fieldset>
 <div id="status" class="status" role="status"></div><section id="savedLinks" class="hero" style="margin-top:18px"><h3>Saved links on this phone</h3></section>
 <p class="hint">Draft autosaves on this device. If browser data is cleared, the draft may be lost. To edit a shared link, edit the fields and create a new link; the old link remains unchanged.</p>
 </form></main>
@@ -111,5 +121,18 @@ document.getElementById('preview').addEventListener('click',async()=>{
  }finally{btn.disabled=false;}
 });
 document.getElementById('reset').addEventListener('click',()=>{fields.forEach(el=>el.value=defaults[el.dataset.key]);save();showStatus('Default text restored on this device.');});
+function refreshDashboard(){
+ let list=[];try{list=JSON.parse(localStorage.getItem(linksKey)||'[]')}catch(e){}
+ document.getElementById('dashLinkCount').textContent=String(list.length);
+ const contact=(document.getElementById('contactUrl')?.value||'').trim();
+ document.getElementById('dashContactState').textContent=contact?'Configured':'Not set';
+ const cloud=document.getElementById('dashCloudState');
+ cloud.textContent='Protected';
+ document.getElementById('dashDetails').textContent='Cloud visitor analytics and messages are not connected to this dashboard yet. Current Firestore rules reject these collection accesses; keep private data private.';
+}
+document.getElementById('refreshDashboard').addEventListener('click',refreshDashboard);
+document.getElementById('openFirebaseGuide').addEventListener('click',()=>window.open('https://github.com/mainakgarai007/sorry-/blob/main/FIREBASE-SETUP.md','_blank','noopener'));
+form.addEventListener('input',refreshDashboard);
 renderLinks();
+refreshDashboard();
 </script></body></html>
