@@ -108,6 +108,18 @@ btnSadMad.addEventListener('click', () => {
   screenSuperSad.classList.remove('hidden'); screenSuperSad.classList.add('active');
 });
 
+// The forgiveness button on the super-sad screen was missing its navigation handler.
+btnSuperForgive.addEventListener('click', () => {
+  decorSuperSad.classList.add('hidden');
+  decor3.classList.remove('hidden');
+  document.body.classList.remove('screen-super-sad-mode');
+  document.body.classList.add('screen-3-mode');
+  screenSuperSad.classList.remove('active');
+  screenSuperSad.classList.add('hidden');
+  screen3.classList.remove('hidden');
+  screen3.classList.add('active');
+});
+
 const phrasesSuper = [
   "Look at my tears! 🌊😭", "I'll do all your chores! 🧹🥺",
   "Free snacks & ice cream! 🍦💖", "I'm on my knees! 🙇‍♂️💔",
