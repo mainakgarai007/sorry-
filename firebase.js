@@ -50,21 +50,30 @@
         });
       });
       const screens = ["screen-1", "screen-2", "screen-sad", "screen-super-sad", "screen-3"];
-      const observer = new MutationObserver(() => {
+      let lastTrackedPage = "";
+      const trackActivePage = () => {
         const active = document.querySelector("main.screen.active");
-        if (active) window.sorryFirebase.track("page_reached", { page: active.id });
-      });
+        if (active && active.id !== lastTrackedPage) {
+          lastTrackedPage = active.id;
+          window.sorryFirebase.track("page_reached", { page: active.id });
+        }
+      };
+      const observer = new MutationObserver(trackActivePage);
       screens.forEach(id => {
         const el = document.getElementById(id);
         if (el) observer.observe(el, { attributes: true, attributeFilter: ["class"] });
       });
-      addSorryMessageUI();
+      trackActivePage();
     });
   } catch (error) {
     console.warn("Firebase could not initialize.", error);
   }
 
+  // Keep help UI available even when Firebase is blocked or rules reject writes.
+  window.addEventListener("DOMContentLoaded", addSorryMessageUI, { once: true });
+
   function addSorryMessageUI() {
+    if (document.getElementById("sorry-message-open")) return;
     const style = document.createElement("style");
     style.textContent = `
       #sorry-message-open{position:fixed;right:16px;top:14px;z-index:10001;border:0;border-radius:999px;padding:11px 15px;background:#7c58a6;color:#fff;font-weight:700;box-shadow:0 6px 22px #49315c30}
