@@ -66,7 +66,7 @@ button{border:0;border-radius:13px;padding:12px 15px;font:700 15px system-ui;cur
 <p id="dashPrivacyNote" class="hint">Local analytics include only visits and clicks recorded in this same browser on this device. They cannot show other people's visits unless secure cloud access is configured.</p>
 <div id="buttonResponses" style="margin-top:14px"><h4 style="margin:8px 0">🖱️ Button clicks & responses</h4><p class="hint">No button clicks recorded yet.</p></div>
 <div id="localAnalytics" style="margin-top:14px"><h4 style="margin:8px 0">🕘 Recent local activity</h4><p class="hint">No local activity yet.</p></div>
-<div class="actions"><button class="secondary" type="button" id="refreshDashboard">↻ Refresh dashboard</button><button class="secondary" type="button" id="openFirebaseGuide">Firebase setup guide</button></div>
+<div class="actions"><button class="secondary" type="button" id="refreshDashboard">↻ Refresh dashboard</button><button class="secondary" type="button" id="clearDashboard">🧹 Clear dashboard data</button><button class="secondary" type="button" id="openFirebaseGuide">Firebase setup guide</button></div>
 <div id="dashDetails" class="status" style="display:block">Cloud visitor analytics: not connected. Public read access to private messages or visitor records will not be enabled.</div>
 </fieldset>
 <div id="status" class="status" role="status"></div><section id="savedLinks" class="hero" style="margin-top:18px"><h3>Saved links on this phone</h3></section>
@@ -109,8 +109,8 @@ function syncContact(){
    if(/^\+?[0-9]{8,15}$/.test(phone))url='sms:'+phone;
    help='Enter a phone number, preferably with country code.';
  }else if(mode==='custom'){
-   try{const parsed=new URL(raw);if(['https:','http:','mailto:','tel:'].includes(parsed.protocol))url=parsed.href;}catch(e){}
-   help='Enter a complete https://, http://, mailto: or tel: link.';
+   try{const parsed=new URL(raw);if(['https:','http:','mailto:','tel:','sms:'].includes(parsed.protocol))url=parsed.href;}catch(e){}
+   help='Enter a complete https://, http://, mailto:, tel: or sms: link.';
  }
  contactUrl.value=url;
  contactTarget.placeholder=mode==='none'?'No details needed':mode==='whatsapp'?'WhatsApp number with country code':mode==='instagram'?'Instagram username':mode==='messenger'?'Facebook username/page':mode==='email'?'you@example.com':mode==='sms'?'Phone number with country code':mode==='custom'?'https://example.com or mailto:…':'Unavailable for now';
@@ -240,6 +240,11 @@ function refreshDashboard(){
  document.getElementById('dashDetails').textContent='Local analytics only. Button responses are inferred from the next page event in this same browser. Firestore cloud analytics and messages are not connected; no Firestore rules were changed.';
 }
 document.getElementById('refreshDashboard').addEventListener('click',refreshDashboard);
+document.getElementById('clearDashboard').addEventListener('click',()=>{
+ if(!confirm('Clear saved links and local dashboard activity from this device? Your current draft and already-shared links will remain unchanged. This cannot be undone.'))return;
+ try{localStorage.removeItem(linksKey);localStorage.removeItem('sorryLocalEventsV1');}catch(error){showStatus('Could not clear local dashboard data. Check browser storage settings.');return;}
+ renderLinks();refreshDashboard();showStatus('Dashboard data cleared on this device. Your draft was kept; already-shared links still work.');
+});
 document.getElementById('openFirebaseGuide').addEventListener('click',()=>window.open('https://github.com/mainakgarai007/sorry-/blob/main/FIREBASE-SETUP.md','_blank','noopener'));
 form.addEventListener('input',refreshDashboard);
 renderLinks();
