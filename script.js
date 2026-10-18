@@ -1,6 +1,35 @@
 // Project: Apology Card
 // Author: saklin_01
 
+// Apply optional text carried in a custom share link (#sorry=...).
+// The fragment is not sent to the server and does not require Firebase rules.
+(function applyCustomText() {
+  try {
+    const match = location.hash.match(/(?:^#|&)sorry=([A-Za-z0-9_-]+)/);
+    if (!match) return;
+    const base64 = match[1].replace(/-/g, '+').replace(/_/g, '/');
+    const binary = atob(base64 + '='.repeat((4 - base64.length % 4) % 4));
+    const bytes = Uint8Array.from(binary, ch => ch.charCodeAt(0));
+    const data = JSON.parse(new TextDecoder().decode(bytes));
+    const setText = (selector, value) => {
+      const el = document.querySelector(selector);
+      if (el && typeof value === 'string') el.textContent = value;
+    };
+    const map = {
+      '.title-screen-1':'title1', '.sub-screen-1':'body1', '#btn-no':'btn1a', '#btn-yes':'btn1b',
+      '.title-screen-2':'title2', '.sub-screen-2':'body2', '#btn-forgive-final':'btn2a', '#btn-idk':'btn2b',
+      '.title-screen-sad':'sadTitle', '.sub-screen-sad':'sadBody', '#btn-sad-forgive':'sadA', '#btn-sad-mad':'sadB',
+      '.title-screen-super-sad':'superTitle', '.sub-screen-super-sad':'superBody', '#btn-super-forgive':'superA', '#btn-super-mad':'superB',
+      '.title-screen-3':'finalTitle', '.sub-screen-3':'finalBody', '#btn-infinite-love':'finalBtn'
+    };
+    Object.entries(map).forEach(([selector, key]) => {
+      if (typeof data[key] === 'string') setText(selector, data[key].slice(0, 800));
+    });
+  } catch (error) {
+    console.warn('Custom sorry link could not be read.', error);
+  }
+})();
+
 // Screen Elements
 const screen1 = document.getElementById('screen-1');
 const screen2 = document.getElementById('screen-2');
@@ -14,7 +43,6 @@ const decor3 = document.getElementById('decor-screen-3');
 const decorSad = document.getElementById('decor-screen-sad');
 const decorSuperSad = document.getElementById('decor-screen-super-sad');
 
-// Buttons & Interactive Elements
 const btnYes = document.getElementById('btn-yes');
 const btnNo = document.getElementById('btn-no');
 const btnIdk = document.getElementById('btn-idk');
@@ -26,183 +54,80 @@ const btnSuperMad = document.getElementById('btn-super-mad');
 const btnInfiniteLove = document.getElementById('btn-infinite-love');
 const loveRainContainer = document.getElementById('love-rain');
 
-// Transition: Screen 1 -> Screen 2 (Forgive path)
 btnNo.addEventListener('click', () => {
-  decor1.classList.add('hidden');
-  decor2.classList.remove('hidden');
+  decor1.classList.add('hidden'); decor2.classList.remove('hidden');
   document.body.classList.remove('screen-3-mode', 'screen-sad-mode', 'screen-super-sad-mode');
   document.body.classList.add('screen-2-mode');
-
-  screen1.classList.remove('active');
-  screen1.classList.add('hidden');
-
-  screen2.classList.remove('hidden');
-  screen2.classList.add('active');
+  screen1.classList.remove('active'); screen1.classList.add('hidden');
+  screen2.classList.remove('hidden'); screen2.classList.add('active');
 });
-
-// Transition: Screen 1 -> Screen Sad (Still mad path)
 btnYes.addEventListener('click', () => {
-  decor1.classList.add('hidden');
-  decorSad.classList.remove('hidden');
+  decor1.classList.add('hidden'); decorSad.classList.remove('hidden');
   document.body.classList.remove('screen-2-mode', 'screen-3-mode', 'screen-super-sad-mode');
   document.body.classList.add('screen-sad-mode');
-
-  screen1.classList.remove('active');
-  screen1.classList.add('hidden');
-
-  screenSad.classList.remove('hidden');
-  screenSad.classList.add('active');
+  screen1.classList.remove('active'); screen1.classList.add('hidden');
+  screenSad.classList.remove('hidden'); screenSad.classList.add('active');
 });
-
-// Transition: Screen 2 -> Screen 1 (Return back)
 btnIdk.addEventListener('click', () => {
-  decor2.classList.add('hidden');
-  decor1.classList.remove('hidden');
+  decor2.classList.add('hidden'); decor1.classList.remove('hidden');
   document.body.classList.remove('screen-2-mode');
-
-  screen2.classList.remove('active');
-  screen2.classList.add('hidden');
-
-  screen1.classList.remove('hidden');
-  screen1.classList.add('active');
+  screen2.classList.remove('active'); screen2.classList.add('hidden');
+  screen1.classList.remove('hidden'); screen1.classList.add('active');
 });
-
-// Transition: Screen 2 -> Screen 3 (Celebration Climax)
 btnForgiveFinal.addEventListener('click', () => {
-  decor2.classList.add('hidden');
-  decor3.classList.remove('hidden');
-  document.body.classList.remove('screen-2-mode');
-  document.body.classList.add('screen-3-mode');
-
-  screen2.classList.remove('active');
-  screen2.classList.add('hidden');
-
-  screen3.classList.remove('hidden');
-  screen3.classList.add('active');
+  decor2.classList.add('hidden'); decor3.classList.remove('hidden');
+  document.body.classList.remove('screen-2-mode'); document.body.classList.add('screen-3-mode');
+  screen2.classList.remove('active'); screen2.classList.add('hidden');
+  screen3.classList.remove('hidden'); screen3.classList.add('active');
 });
-
-// Transition: Screen Sad -> Screen 3 (Celebration Climax)
 btnSadForgive.addEventListener('click', () => {
-  decorSad.classList.add('hidden');
-  decor3.classList.remove('hidden');
-  document.body.classList.remove('screen-sad-mode');
-  document.body.classList.add('screen-3-mode');
-
-  screenSad.classList.remove('active');
-  screenSad.classList.add('hidden');
-
-  screen3.classList.remove('hidden');
-  screen3.classList.add('active');
+  decorSad.classList.add('hidden'); decor3.classList.remove('hidden');
+  document.body.classList.remove('screen-sad-mode'); document.body.classList.add('screen-3-mode');
+  screenSad.classList.remove('active'); screenSad.classList.add('hidden');
+  screen3.classList.remove('hidden'); screen3.classList.add('active');
 });
-
-// Transition: Screen Sad -> Screen Super Sad (Refused again: "jodi abar no kore")
 btnSadMad.addEventListener('click', () => {
-  decorSad.classList.add('hidden');
-  decorSuperSad.classList.remove('hidden');
-  document.body.classList.remove('screen-sad-mode');
-  document.body.classList.add('screen-super-sad-mode');
-
-  screenSad.classList.remove('active');
-  screenSad.classList.add('hidden');
-
-  screenSuperSad.classList.remove('hidden');
-  screenSuperSad.classList.add('active');
+  decorSad.classList.add('hidden'); decorSuperSad.classList.remove('hidden');
+  document.body.classList.remove('screen-sad-mode'); document.body.classList.add('screen-super-sad-mode');
+  screenSad.classList.remove('active'); screenSad.classList.add('hidden');
+  screenSuperSad.classList.remove('hidden'); screenSuperSad.classList.add('active');
 });
 
-// Screen Super Sad: Playful Dodging with extreme emotional pleading
 const phrasesSuper = [
-  "Look at my tears! 🌊😭",
-  "I'll do all your chores! 🧹🥺",
-  "Free snacks & ice cream! 🍦💖",
-  "I'm on my knees! 🙇‍♂️💔",
-  "Have mercy please! 🥺",
-  "Say yes please! 😭❤️"
+  "Look at my tears! 🌊😭", "I'll do all your chores! 🧹🥺",
+  "Free snacks & ice cream! 🍦💖", "I'm on my knees! 🙇‍♂️💔",
+  "Have mercy please! 🥺", "Say yes please! 😭❤️"
 ];
 let countSuper = 0;
-
 function dodgeSuperMad() {
   countSuper++;
   btnSuperMad.textContent = phrasesSuper[countSuper % phrasesSuper.length];
-  const x = (Math.random() - 0.5) * 170;
-  const y = (Math.random() - 0.5) * 130;
+  const x = (Math.random() - 0.5) * 170, y = (Math.random() - 0.5) * 130;
   btnSuperMad.style.transform = `translate(${x}px, ${y}px)`;
-  const scale = Math.min(1.4, 1 + countSuper * 0.08);
-  btnSuperForgive.style.transform = `scale(${scale})`;
+  btnSuperForgive.style.transform = `scale(${Math.min(1.4, 1 + countSuper * 0.08)})`;
 }
-
 btnSuperMad.addEventListener('mouseenter', dodgeSuperMad);
 btnSuperMad.addEventListener('click', dodgeSuperMad);
-btnSuperMad.addEventListener('touchstart', (e) => { e.preventDefault(); dodgeSuperMad(); });
-
-// Transition: Screen Super Sad -> Screen 3 (Celebration Climax)
-btnSuperForgive.addEventListener('click', () => {
-  decorSuperSad.classList.add('hidden');
-  decor3.classList.remove('hidden');
-  document.body.classList.remove('screen-super-sad-mode');
-  document.body.classList.add('screen-3-mode');
-
-  screenSuperSad.classList.remove('active');
-  screenSuperSad.classList.add('hidden');
-
-  screen3.classList.remove('hidden');
-  screen3.classList.add('active');
-});
-
-// Screen 3: "Love You to Infinity" Rain Shower Effect
-const loveWords = [
-  "i love you ❤️",
-  "love you ∞",
-  "forever yours 💖",
-  "ilysm 💕",
-  "i love you so much 🥰",
-  "my whole world 🌎✨",
-  "always & forever 💖",
-  "love you unconditionally 🥺❤️",
-  "never letting you go 💕",
-  "you & me forever ∞",
-  "i love you 💖",
-  "cutie pie 🥰",
-  "my heart is yours ❤️"
-];
-
-const loveColors = ["#e63963", "#c9184a", "#ff758f", "#f4a261", "#d62828", "#ff4d6d"];
-
+btnSuperMad.addEventListener('touchstart', e => { e.preventDefault(); dodgeSuperMad(); });
+const loveWords = ["i love you ❤️","love you ∞","forever yours 💖","ilysm 💕","i love you so much 🥰","my whole world 🌎✨","always & forever 💖","love you unconditionally 🥺❤️","never letting you go 💕","you & me forever ∞","i love you 💖","cutie pie 🥰","my heart is yours ❤️"];
+const loveColors = ["#e63963","#c9184a","#ff758f","#f4a261","#d62828","#ff4d6d"];
 function triggerLoveRain() {
   if (!loveRainContainer) return;
-  // Spawn flurry of 42 small love text droplets falling across screen
-  for (let i = 0; i < 42; i++) {
-    setTimeout(() => {
-      const drop = document.createElement('span');
-      drop.className = 'love-drop';
-      drop.textContent = loveWords[Math.floor(Math.random() * loveWords.length)];
-
-      const x = Math.random() * 92 + 4;
-      const dur = (2.2 + Math.random() * 2.2).toFixed(2);
-      const delay = (Math.random() * 0.8).toFixed(2);
-      const rot = (Math.random() * 30 - 15).toFixed(1);
-      const sz = (0.78 + Math.random() * 0.32).toFixed(2) + 'rem';
-      const col = loveColors[Math.floor(Math.random() * loveColors.length)];
-
-      drop.style.setProperty('--x', `${x}%`);
-      drop.style.setProperty('--dur', `${dur}s`);
-      drop.style.setProperty('--delay', `${delay}s`);
-      drop.style.setProperty('--rot', `${rot}deg`);
-      drop.style.setProperty('--sz', sz);
-      drop.style.setProperty('--col', col);
-
-      loveRainContainer.appendChild(drop);
-
-      setTimeout(() => {
-        drop.remove();
-      }, (parseFloat(dur) + parseFloat(delay) + 0.4) * 1000);
-    }, i * 40);
-  }
+  for (let i = 0; i < 42; i++) setTimeout(() => {
+    const drop = document.createElement('span');
+    drop.className = 'love-drop';
+    drop.textContent = loveWords[Math.floor(Math.random() * loveWords.length)];
+    const x = Math.random() * 92 + 4, dur = (2.2 + Math.random() * 2.2).toFixed(2);
+    const delay = (Math.random() * 0.8).toFixed(2), rot = (Math.random() * 30 - 15).toFixed(1);
+    drop.style.setProperty('--x', `${x}%`); drop.style.setProperty('--dur', `${dur}s`);
+    drop.style.setProperty('--delay', `${delay}s`); drop.style.setProperty('--rot', `${rot}deg`);
+    drop.style.setProperty('--sz', (0.78 + Math.random() * 0.32).toFixed(2) + 'rem');
+    drop.style.setProperty('--col', loveColors[Math.floor(Math.random() * loveColors.length)]);
+    loveRainContainer.appendChild(drop);
+    setTimeout(() => drop.remove(), (parseFloat(dur) + parseFloat(delay) + 0.4) * 1000);
+  }, i * 40);
 }
-
 if (btnInfiniteLove) {
   btnInfiniteLove.addEventListener('click', triggerLoveRain);
-  btnInfiniteLove.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    triggerLoveRain();
-  });
+  btnInfiniteLove.addEventListener('touchstart', e => { e.preventDefault(); triggerLoveRain(); });
 }
