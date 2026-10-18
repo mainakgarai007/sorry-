@@ -9,7 +9,7 @@
 main{max-width:760px;margin:auto;padding:20px 14px 48px}.hero{padding:22px 18px;border-radius:22px;background:#fff9;box-shadow:0 8px 30px #5e367515;margin-bottom:18px}
 h1{margin:0 0 6px;font-size:27px}p{line-height:1.5}.hint{font-size:13px;opacity:.8}
 fieldset{border:1px solid var(--line);border-radius:18px;background:#ffffffd9;padding:16px;margin:14px 0}legend{font-weight:800;padding:0 8px}
-label{display:block;font-size:13px;font-weight:700;margin:12px 0 5px}input,textarea{width:100%;border:1px solid #d9c8e1;border-radius:12px;padding:11px;font:inherit;background:white;color:var(--ink)}textarea{min-height:76px;resize:vertical}
+label{display:block;font-size:13px;font-weight:700;margin:12px 0 5px}input,textarea,select{width:100%;border:1px solid #d9c8e1;border-radius:12px;padding:11px;font:inherit;background:white;color:var(--ink)}textarea{min-height:76px;resize:vertical}select{width:100%;border:1px solid #d9c8e1;border-radius:12px;padding:11px;font:inherit;background:white;color:var(--ink)}
 button{border:0;border-radius:13px;padding:12px 15px;font:700 15px system-ui;cursor:pointer}.primary{background:var(--purple);color:white}.secondary{background:#f0e5f5;color:var(--ink)}.actions{display:flex;flex-wrap:wrap;gap:9px;margin:14px 0}.status{overflow-wrap:anywhere;padding:12px;background:#f5eaf8;border-radius:12px;display:none}.warning{background:#fff0e7;padding:12px;border-radius:12px;font-size:13px}
 </style></head>
 <body><main>
@@ -39,9 +39,21 @@ button{border:0;border-radius:13px;padding:12px 15px;font:700 15px system-ui;cur
 <label for="finalTitle">Heading</label><input id="finalTitle" data-key="finalTitle" maxlength="180" value="Thank You for Forgiving Me ❤️">
 <label for="finalBody">Message</label><textarea id="finalBody" data-key="finalBody" maxlength="800">You mean the absolute world to me. My heart only finds peace when you smile... 🥺💑✨</textarea>
 <label for="finalBtn">Final button</label><input id="finalBtn" data-key="finalBtn" maxlength="100" value="Love You to Infinity ∞ 💖">
-<label for="contactLabel">Optional contact button text</label><input id="contactLabel" data-key="contactLabel" maxlength="80" value="Contact me">
-<label for="contactUrl">Optional contact link (website, WhatsApp URL, mailto:, or tel:)</label><input id="contactUrl" data-key="contactUrl" maxlength="500" placeholder="https://… or mailto:you@example.com">
-<p class="hint">Leave the contact link blank to keep the button hidden on the final page.</p></fieldset>
+<label for="contactMode">How should visitors contact you?</label>
+<select id="contactMode" data-key="contactMode">
+<option value="none">No contact button</option>
+<option value="local" disabled>Website message inbox — unavailable for now</option>
+<option value="whatsapp">WhatsApp chat</option>
+<option value="instagram">Instagram DM</option>
+<option value="messenger">Facebook Messenger</option>
+<option value="email">Email</option>
+<option value="sms">SMS / text message</option>
+<option value="custom">Custom website or contact link</option>
+</select>
+<label for="contactTarget">Your contact detail</label><input id="contactTarget" data-key="contactTarget" maxlength="250" placeholder="Choose a contact option above">
+<label for="contactLabel">Contact button text</label><input id="contactLabel" data-key="contactLabel" maxlength="80" value="Contact me">
+<input id="contactUrl" data-key="contactUrl" maxlength="500" aria-label="Generated contact URL" hidden>
+<p class="hint" id="contactHelp">Choose a method and enter your own username, phone number, email or link. Check the link before sharing.</p></fieldset>
 <div class="actions"><button class="primary" type="button" id="makeLink">🔗 Create share link</button><button class="secondary" type="button" id="preview">👀 Preview</button><button class="secondary" type="button" id="reset">Reset default text</button></div>
 <fieldset id="creatorDashboard"><legend>📊 Creator Dashboard</legend>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px">
@@ -68,7 +80,48 @@ const key='sorryCreatorDraftV1', linksKey='sorryCreatedLinksV1';
 function values(){return Object.fromEntries(fields.map(el=>[el.dataset.key,el.value.trim()]));}
 function save(){try{localStorage.setItem(key,JSON.stringify(values()));}catch(e){}}
 try{const saved=JSON.parse(localStorage.getItem(key)||'null');if(saved)fields.forEach(el=>{if(typeof saved[el.dataset.key]==='string')el.value=saved[el.dataset.key];});}catch(e){}
+syncContact();
 form.addEventListener('input',save);
+const contactMode=document.getElementById('contactMode');
+const contactTarget=document.getElementById('contactTarget');
+const contactUrl=document.getElementById('contactUrl');
+const contactHelp=document.getElementById('contactHelp');
+function syncContact(){
+ const mode=contactMode.value, raw=contactTarget.value.trim();
+ let url='', help='';
+ const clean=raw.replace(/^@/,'');
+ if(mode==='none'){help='The final page will not show a contact button.';}
+ else if(mode==='local'){help='Website message inbox is not available yet.';}
+ else if(mode==='whatsapp'){
+   const digits=raw.replace(/[^0-9]/g,'');
+   if(digits.length>=8&&digits.length<=15)url='https://wa.me/'+digits;
+   help='Enter your WhatsApp number with country code, digits only is best (India: 91…).';
+ }else if(mode==='instagram'){
+   if(/^[A-Za-z0-9._]{1,30}$/.test(clean))url='https://ig.me/m/'+clean;
+   help='Enter your Instagram username, with or without @.';
+ }else if(mode==='messenger'){
+   if(/^[A-Za-z0-9.]{3,100}$/.test(clean))url='https://m.me/'+clean;
+   help='Enter your Facebook username or page username.';
+ }else if(mode==='email'){
+   if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw))url='mailto:'+raw;
+   help='Enter the email address visitors should contact.';
+ }else if(mode==='sms'){
+   const phone=raw.replace(/[\s()-]/g,'');
+   if(/^\+?[0-9]{8,15}$/.test(phone))url='sms:'+phone;
+   help='Enter a phone number, preferably with country code.';
+ }else if(mode==='custom'){
+   try{const parsed=new URL(raw);if(['https:','http:','mailto:','tel:'].includes(parsed.protocol))url=parsed.href;}catch(e){}
+   help='Enter a complete https://, http://, mailto: or tel: link.';
+ }
+ contactUrl.value=url;
+ contactTarget.placeholder=mode==='none'?'No details needed':mode==='whatsapp'?'WhatsApp number with country code':mode==='instagram'?'Instagram username':mode==='messenger'?'Facebook username/page':mode==='email'?'you@example.com':mode==='sms'?'Phone number with country code':mode==='custom'?'https://example.com or mailto:…':'Unavailable for now';
+ contactTarget.disabled=mode==='none'||mode==='local';
+ contactHelp.textContent=help+(mode!=='none'&&mode!=='local'&&!url?' A valid detail is needed before the button appears.':'');
+ refreshDashboard();
+}
+contactMode.addEventListener('change',()=>{syncContact();save();});
+contactTarget.addEventListener('input',()=>{syncContact();save();});
+
 function toB64Url(bytes){let binary='';for(let i=0;i<bytes.length;i++)binary+=String.fromCharCode(bytes[i]);return btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
 async function encodePayload(obj){
  const bytes=new TextEncoder().encode(JSON.stringify(obj));
