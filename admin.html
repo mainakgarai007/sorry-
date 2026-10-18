@@ -55,7 +55,7 @@ form.addEventListener('input',save);
 function toB64Url(bytes){let binary='';for(let i=0;i<bytes.length;i++)binary+=String.fromCharCode(bytes[i]);return btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
 async function encodePayload(obj){
  const bytes=new TextEncoder().encode(JSON.stringify(obj));
- if('CompressionStream' in window){try{const stream=new Blob([bytes]).stream().pipeThrough(new CompressionStream('gzip'));return 'z'+toB64Url(new Uint8Array(await new Response(stream).arrayBuffer()));}catch(e){}}
+ if('CompressionStream' in window && 'DecompressionStream' in window){try{const stream=new Blob([bytes]).stream().pipeThrough(new CompressionStream('gzip'));return 'z'+toB64Url(new Uint8Array(await new Response(stream).arrayBuffer()));}catch(e){}}
  return 'j'+toB64Url(bytes);
 }
 function showStatus(text){status.style.display='block';status.textContent=text;}
