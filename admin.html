@@ -87,9 +87,25 @@ document.getElementById('makeLink').addEventListener('click',async()=>{
  finally{btn.disabled=false;}
 });
 document.getElementById('preview').addEventListener('click',async()=>{
- const payload=await encodePayload(values());
- const link=location.origin+location.pathname.replace(/admin\.html$/,'')+'#s='+payload;
- window.open(link,'_blank','noopener');
+ // Open synchronously during the tap so mobile browsers do not block the preview.
+ const previewWindow=window.open('about:blank','_blank');
+ const btn=document.getElementById('preview');
+ btn.disabled=true;
+ showStatus('Preparing preview…');
+ try{
+  const payload=await encodePayload(values());
+  const link=location.origin+location.pathname.replace(/admin\\.html$/,'')+'#s='+payload;
+  if(previewWindow){
+   previewWindow.opener=null;
+   previewWindow.location.replace(link);
+   showStatus('Preview opened in a new tab.');
+  }else{
+   showStatus('Preview popup was blocked. Use Create share link, then open the generated link below.');
+  }
+ }catch(error){
+  if(previewWindow)previewWindow.close();
+  showStatus('Could not prepare preview. Please try again.');
+ }finally{btn.disabled=false;}
 });
 document.getElementById('reset').addEventListener('click',()=>{fields.forEach(el=>el.value=defaults[el.dataset.key]);save();showStatus('Default text restored on this device.');});
 renderLinks();
