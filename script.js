@@ -1,33 +1,40 @@
 // Project: Apology Card
 // Author: saklin_01
 
-// Apply optional text carried in a custom share link (#sorry=...).
-// The fragment is not sent to the server and does not require Firebase rules.
-(function applyCustomText() {
+// Apply optional custom text from #s= (compressed) or legacy #sorry= links.
+(async function applyCustomText() {
   try {
-    const match = location.hash.match(/(?:^#|&)sorry=([A-Za-z0-9_-]+)/);
-    if (!match) return;
-    const base64 = match[1].replace(/-/g, '+').replace(/_/g, '/');
-    const binary = atob(base64 + '='.repeat((4 - base64.length % 4) % 4));
-    const bytes = Uint8Array.from(binary, ch => ch.charCodeAt(0));
-    const data = JSON.parse(new TextDecoder().decode(bytes));
-    const setText = (selector, value) => {
-      const el = document.querySelector(selector);
-      if (el && typeof value === 'string') el.textContent = value;
-    };
+    let data;
+    const shortMatch = location.hash.match(/(?:^#|&)s=([A-Za-z0-9_-]+)/);
+    const oldMatch = location.hash.match(/(?:^#|&)sorry=([A-Za-z0-9_-]+)/);
+    if (shortMatch) {
+      const token = shortMatch[1];
+      const binary = atob(token.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4-token.length%4)%4));
+      const bytes = Uint8Array.from(binary, ch => ch.charCodeAt(0));
+      if (token.startsWith('z')) {
+        if (!('DecompressionStream' in window)) throw new Error('This browser cannot decompress this link. Try Chrome.');
+        const stream = new Blob([bytes.slice(1)]).stream().pipeThrough(new DecompressionStream('gzip'));
+        data = JSON.parse(new TextDecoder().decode(await new Response(stream).arrayBuffer()));
+      } else if (token.startsWith('j')) {
+        data = JSON.parse(new TextDecoder().decode(bytes.slice(1)));
+      } else {
+        data = JSON.parse(new TextDecoder().decode(bytes));
+      }
+    } else if (oldMatch) {
+      const token = oldMatch[1].replace(/-/g, '+').replace(/_/g, '/');
+      const binary = atob(token + '='.repeat((4-token.length%4)%4));
+      data = JSON.parse(new TextDecoder().decode(Uint8Array.from(binary, ch => ch.charCodeAt(0))));
+    } else return;
+    const setText = (selector, value) => { const el=document.querySelector(selector); if(el && typeof value==='string') el.textContent=value; };
     const map = {
-      '.title-screen-1':'title1', '.sub-screen-1':'body1', '#btn-no':'btn1a', '#btn-yes':'btn1b',
-      '.title-screen-2':'title2', '.sub-screen-2':'body2', '#btn-forgive-final':'btn2a', '#btn-idk':'btn2b',
-      '.title-screen-sad':'sadTitle', '.sub-screen-sad':'sadBody', '#btn-sad-forgive':'sadA', '#btn-sad-mad':'sadB',
-      '.title-screen-super-sad':'superTitle', '.sub-screen-super-sad':'superBody', '#btn-super-forgive':'superA', '#btn-super-mad':'superB',
-      '.title-screen-3':'finalTitle', '.sub-screen-3':'finalBody', '#btn-infinite-love':'finalBtn'
+      '.title-screen-1':'title1','.sub-screen-1':'body1','#btn-no':'btn1a','#btn-yes':'btn1b',
+      '.title-screen-2':'title2','.sub-screen-2':'body2','#btn-forgive-final':'btn2a','#btn-idk':'btn2b',
+      '.title-screen-sad':'sadTitle','.sub-screen-sad':'sadBody','#btn-sad-forgive':'sadA','#btn-sad-mad':'sadB',
+      '.title-screen-super-sad':'superTitle','.sub-screen-super-sad':'superBody','#btn-super-forgive':'superA','#btn-super-mad':'superB',
+      '.title-screen-3':'finalTitle','.sub-screen-3':'finalBody','#btn-infinite-love':'finalBtn'
     };
-    Object.entries(map).forEach(([selector, key]) => {
-      if (typeof data[key] === 'string') setText(selector, data[key].slice(0, 800));
-    });
-  } catch (error) {
-    console.warn('Custom sorry link could not be read.', error);
-  }
+    Object.entries(map).forEach(([selector,key])=>{if(typeof data[key]==='string')setText(selector,data[key].slice(0,800));});
+  } catch(error) { console.warn('Custom sorry link could not be read.',error); }
 })();
 
 // Screen Elements
