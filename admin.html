@@ -83,7 +83,7 @@ function renderLinks(){
   const link=document.createElement('p');link.textContent=item.url;link.style.fontSize='12px';row.appendChild(link);
   const open=document.createElement('button');open.className='secondary';open.textContent='Open';open.onclick=()=>window.open(item.url,'_blank','noopener');row.appendChild(open);
   const copy=document.createElement('button');copy.className='secondary';copy.textContent='Copy';copy.style.marginLeft='6px';copy.onclick=async()=>{try{await navigator.clipboard.writeText(item.url);showStatus('Link copied!')}catch(e){showStatus('Copy failed. Select and copy the link above.')}};row.appendChild(copy);
-  const del=document.createElement('button');del.className='secondary';del.textContent='Delete from this phone';del.style.marginLeft='6px';del.onclick=()=>{if(!confirm('Remove this saved link from this phone? This does not deactivate a link already shared.'))return;list.splice(index,1);localStorage.setItem(linksKey,JSON.stringify(list));renderLinks();};row.appendChild(del);area.appendChild(row);
+  const del=document.createElement('button');del.className='secondary';del.textContent='Delete from this phone';del.style.marginLeft='6px';del.onclick=()=>{if(!confirm('Remove this saved link from this phone? This does not deactivate a link already shared.'))return;list.splice(index,1);localStorage.setItem(linksKey,JSON.stringify(list));renderLinks();refreshDashboard();};row.appendChild(del);area.appendChild(row);
  });
 }
 document.getElementById('makeLink').addEventListener('click',async()=>{
@@ -96,6 +96,7 @@ document.getElementById('makeLink').addEventListener('click',async()=>{
   localStorage.setItem(linksKey,JSON.stringify(list.slice(0,20)));
   try{await navigator.clipboard.writeText(link);showStatus('Link copied! Open it to test, then share it.\n'+link);}catch(e){showStatus('Link ready — copy it below.\n'+link);}
   renderLinks();
+  refreshDashboard();
  }catch(e){showStatus('Could not create link. Try again.');}
  finally{btn.disabled=false;}
 });
@@ -127,7 +128,7 @@ function refreshDashboard(){
  const contact=(document.getElementById('contactUrl')?.value||'').trim();
  document.getElementById('dashContactState').textContent=contact?'Configured':'Not set';
  const cloud=document.getElementById('dashCloudState');
- cloud.textContent='Protected';
+ cloud.textContent='Not connected';
  document.getElementById('dashDetails').textContent='Cloud visitor analytics and messages are not connected to this dashboard yet. Current Firestore rules reject these collection accesses; keep private data private.';
 }
 document.getElementById('refreshDashboard').addEventListener('click',refreshDashboard);
