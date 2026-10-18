@@ -105,7 +105,8 @@
     const open = document.createElement("button");
     open.id = "sorry-message-open";
     open.type = "button";
-    open.textContent = "💌 Message";
+    open.textContent = "💌 Contact me";
+    open.hidden = !window.sorryContactUrl;
     document.body.appendChild(open);
 
     const fab = document.createElement("button");
@@ -131,7 +132,16 @@
     modal.innerHTML = '<section class="sm-card" role="dialog" aria-modal="true" aria-labelledby="sm-title"><div class="sm-head"><strong id="sm-title">Send a message 💌</strong><button class="sm-close" type="button" aria-label="Close">×</button></div><p>Leave a message for the creator. Replies are not available here.</p><textarea maxlength="1000" placeholder="Write your message..." aria-label="Your message"></textarea><button class="sm-send" type="button">Send message</button><div class="sm-status" role="status"></div></section>';
     document.body.appendChild(modal);
     const close = () => { modal.style.display = "none"; };
-    open.addEventListener("click", () => { modal.style.display = "flex"; window.sorryFirebase?.track("message_popup_opened"); });
+    open.addEventListener("click", () => {
+      const target = window.sorryContactUrl;
+      if (!target) return;
+      if (window.sorryFirebase?.track) window.sorryFirebase.track("contact_button_clicked", { method: window.sorryContactLabel || "Contact" });
+      const parsed = (() => { try { return new URL(target, location.href); } catch (e) { return null; } })();
+      if (parsed && ["http:", "https:", "mailto:", "tel:", "sms:"].includes(parsed.protocol)) {
+        if (["mailto:", "tel:", "sms:"].includes(parsed.protocol)) location.href = parsed.href;
+        else window.open(parsed.href, "_blank", "noopener,noreferrer");
+      }
+    });
     modal.querySelector(".sm-close").addEventListener("click", close);
     modal.addEventListener("click", e => { if (e.target === modal) close(); });
     modal.querySelector(".sm-send").addEventListener("click", async () => {
