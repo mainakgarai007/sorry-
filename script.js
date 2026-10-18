@@ -43,7 +43,7 @@
       if(rawContact){
         try{
           const parsed=new URL(rawContact,location.href);
-          if(['http:','https:','mailto:','tel:'].includes(parsed.protocol)) safeContact=parsed.href;
+          if(['http:','https:','mailto:','tel:','sms:'].includes(parsed.protocol)) safeContact=parsed.href;
         }catch(e){}
       }
       const label=typeof data.contactLabel==='string'&&data.contactLabel.trim()?data.contactLabel.trim():'Contact me';
