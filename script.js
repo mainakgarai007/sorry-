@@ -46,10 +46,17 @@
           if(['http:','https:','mailto:','tel:'].includes(parsed.protocol)) safeContact=parsed.href;
         }catch(e){}
       }
-      contactButton.hidden=!safeContact;
-      if(safeContact) contactButton.href=safeContact;
       const label=typeof data.contactLabel==='string'&&data.contactLabel.trim()?data.contactLabel.trim():'Contact me';
-      contactButton.textContent=label.slice(0,80);
+      window.sorryContactUrl=safeContact;
+      window.sorryContactLabel=label.slice(0,80);
+      contactButton.hidden=!safeContact;
+      if(safeContact){contactButton.href=safeContact;contactButton.setAttribute('target','_blank');}
+      contactButton.textContent=window.sorryContactLabel;
+      const messageButton=document.getElementById('sorry-message-open');
+      if(messageButton){
+        messageButton.hidden=!safeContact;
+        messageButton.textContent='💌 '+window.sorryContactLabel;
+      }
     }
   } catch(error) {
     console.error('Custom sorry link could not be read.',error);
