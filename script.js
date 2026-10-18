@@ -33,9 +33,24 @@
       '.title-screen-2':'title2','.sub-screen-2':'body2','#btn-forgive-final':'btn2a','#btn-idk':'btn2b',
       '.title-screen-sad':'sadTitle','.sub-screen-sad':'sadBody','#btn-sad-forgive':'sadA','#btn-sad-mad':'sadB',
       '.title-screen-super-sad':'superTitle','.sub-screen-super-sad':'superBody','#btn-super-forgive':'superA','#btn-super-mad':'superB',
-      '.title-screen-3':'finalTitle','.sub-screen-3':'finalBody','#btn-infinite-love':'finalBtn'
+      '.title-screen-3':'finalTitle','.sub-screen-3':'finalBody','#btn-infinite-love':'finalBtn','#btn-contact-creator':'contactLabel'
     };
     Object.entries(map).forEach(([selector,key])=>{if(typeof data[key]==='string')setText(selector,data[key].slice(0,800));});
+    const contactButton=document.getElementById('btn-contact-creator');
+    if(contactButton){
+      const rawContact=typeof data.contactUrl==='string'?data.contactUrl.trim():'';
+      let safeContact='';
+      if(rawContact){
+        try{
+          const parsed=new URL(rawContact,location.href);
+          if(['http:','https:','mailto:','tel:'].includes(parsed.protocol)) safeContact=parsed.href;
+        }catch(e){}
+      }
+      contactButton.hidden=!safeContact;
+      if(safeContact) contactButton.href=safeContact;
+      const label=typeof data.contactLabel==='string'&&data.contactLabel.trim()?data.contactLabel.trim():'Contact me';
+      contactButton.textContent=label.slice(0,80);
+    }
   } catch(error) {
     console.error('Custom sorry link could not be read.',error);
     const notice=document.createElement('div');
