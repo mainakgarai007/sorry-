@@ -178,7 +178,7 @@ document.getElementById('preview').addEventListener('click',async()=>{
   showStatus('Could not prepare preview. Please try again.');
  }finally{btn.disabled=false;}
 });
-document.getElementById('reset').addEventListener('click',()=>{fields.forEach(el=>el.value=defaults[el.dataset.key]);save();showStatus('Default text restored on this device.');});
+document.getElementById('reset').addEventListener('click',()=>{fields.forEach(el=>el.value=defaults[el.dataset.key]);syncContact();save();showStatus('Default text restored on this device.');});
 function refreshDashboard(){
  let list=[];try{list=JSON.parse(localStorage.getItem(linksKey)||'[]')}catch(e){}
  document.getElementById('dashLinkCount').textContent=String(list.length);
