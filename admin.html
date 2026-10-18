@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sorry- Creator Studio</title>
+<style>
+:root{color-scheme:light;--ink:#382640;--purple:#79539a;--soft:#fff7fc;--line:#eadced}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(145deg,#f9efff,#fff4f3);font:16px system-ui,-apple-system,sans-serif;color:var(--ink)}
+main{max-width:760px;margin:auto;padding:20px 14px 48px}.hero{padding:22px 18px;border-radius:22px;background:#fff9;box-shadow:0 8px 30px #5e367515;margin-bottom:18px}
+h1{margin:0 0 6px;font-size:27px}p{line-height:1.5}.hint{font-size:13px;opacity:.8}
+fieldset{border:1px solid var(--line);border-radius:18px;background:#ffffffd9;padding:16px;margin:14px 0}legend{font-weight:800;padding:0 8px}
+label{display:block;font-size:13px;font-weight:700;margin:12px 0 5px}input,textarea{width:100%;border:1px solid #d9c8e1;border-radius:12px;padding:11px;font:inherit;background:white;color:var(--ink)}textarea{min-height:76px;resize:vertical}
+button{border:0;border-radius:13px;padding:12px 15px;font:700 15px system-ui;cursor:pointer}.primary{background:var(--purple);color:white}.secondary{background:#f0e5f5;color:var(--ink)}.actions{display:flex;flex-wrap:wrap;gap:9px;margin:14px 0}.status{overflow-wrap:anywhere;padding:12px;background:#f5eaf8;border-radius:12px;display:none}.warning{background:#fff0e7;padding:12px;border-radius:12px;font-size:13px}
+</style></head>
+<body><main>
+<section class="hero"><h1>💌 Sorry- Creator Studio</h1><p>Edit your apology text, then generate a shareable link. Your draft is saved only in this browser. No Firebase rules are changed.</p><p class="warning"><b>Important:</b> Custom text is placed inside the share link itself. Anyone who has that link can see the text. This dashboard does not receive visitor messages or cloud analytics.</p></section>
+<form id="editor">
+<fieldset><legend>Page 1</legend>
+<label for="title1">Heading</label><input id="title1" data-key="title1" maxlength="180" value="Are you still mad at me?">
+<label for="body1">Message</label><textarea id="body1" data-key="body1" maxlength="800">I'm really really sorry... Please forgive me? 🥺</textarea>
+<label for="btn1a">Forgive button</label><input id="btn1a" data-key="btn1a" maxlength="100" value="No, I forgive you 💜">
+<label for="btn1b">Still mad button</label><input id="btn1b" data-key="btn1b" maxlength="100" value="Yes 😤"></fieldset>
+<fieldset><legend>Page 2</legend>
+<label for="title2">Heading</label><input id="title2" data-key="title2" maxlength="180" value="Are you really sure?">
+<label for="body2">Message</label><textarea id="body2" data-key="body2" maxlength="800">Do you truly forgive me from your heart? I promise I will never make you sad again... 🥺💕</textarea>
+<label for="btn2a">Forgive button</label><input id="btn2a" data-key="btn2a" maxlength="100" value="Yes, I truly forgive you ❤️">
+<label for="btn2b">Not sure button</label><input id="btn2b" data-key="btn2b" maxlength="100" value="I don't know yet... 🤔"></fieldset>
+<fieldset><legend>Page 3 — Sad</legend>
+<label for="sadTitle">Heading</label><input id="sadTitle" data-key="sadTitle" maxlength="180" value="Please Don't Stay Mad... 😭💔">
+<label for="sadBody">Message</label><textarea id="sadBody" data-key="sadBody" maxlength="800">Seeing you upset breaks my whole heart into pieces... I am so deeply sorry! Please forgive me... 🥺💧</textarea>
+<label for="sadA">Forgive button</label><input id="sadA" data-key="sadA" maxlength="100" value="Okay, I forgive you 🥺💖">
+<label for="sadB">Still mad button</label><input id="sadB" data-key="sadB" maxlength="100" value="Still mad! 😤"></fieldset>
+<fieldset><legend>Page 4 — Very sad</legend>
+<label for="superTitle">Heading</label><input id="superTitle" data-key="superTitle" maxlength="180" value="I'm 10000% Sorry, Please! 😭💔">
+<label for="superBody">Message</label><textarea id="superBody" data-key="superBody" maxlength="800">I am so sorry. Please forgive me? 🥺🙏❤️‍🩹</textarea>
+<label for="superA">Forgive button</label><input id="superA" data-key="superA" maxlength="100" value="Okay, I forgive you! Don't cry 🥺❤️">
+<label for="superB">Still mad button</label><input id="superB" data-key="superB" maxlength="100" value="Still no! 😤"></fieldset>
+<fieldset><legend>Final page</legend>
+<label for="finalTitle">Heading</label><input id="finalTitle" data-key="finalTitle" maxlength="180" value="Thank You for Forgiving Me ❤️">
+<label for="finalBody">Message</label><textarea id="finalBody" data-key="finalBody" maxlength="800">You mean the absolute world to me. My heart only finds peace when you smile... 🥺💑✨</textarea>
+<label for="finalBtn">Final button</label><input id="finalBtn" data-key="finalBtn" maxlength="100" value="Love You to Infinity ∞ 💖"></fieldset>
+<div class="actions"><button class="primary" type="button" id="makeLink">🔗 Create share link</button><button class="secondary" type="button" id="preview">👀 Preview</button><button class="secondary" type="button" id="reset">Reset default text</button></div>
+<div id="status" class="status" role="status"></div>
+<p class="hint">Draft autosaves on this device. If browser data is cleared, the draft may be lost. To edit a shared link, edit the fields and create a new link; the old link remains unchanged.</p>
+</form></main>
+<script>
+const form=document.getElementById('editor'),status=document.getElementById('status');
+const fields=[...document.querySelectorAll('[data-key]')];
+const defaults=Object.fromEntries(fields.map(el=>[el.dataset.key,el.value]));
+const key='sorryCreatorDraftV1';
+function values(){return Object.fromEntries(fields.map(el=>[el.dataset.key,el.value.trim()]));}
+function save(){try{localStorage.setItem(key,JSON.stringify(values()));}catch(e){}}
+try{const saved=JSON.parse(localStorage.getItem(key)||'null');if(saved)fields.forEach(el=>{if(typeof saved[el.dataset.key]==='string')el.value=saved[el.dataset.key];});}catch(e){}
+form.addEventListener('input',save);
+function encode(obj){const bytes=new TextEncoder().encode(JSON.stringify(obj));let binary='';bytes.forEach(b=>binary+=String.fromCharCode(b));return btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+document.getElementById('makeLink').addEventListener('click',async()=>{const link=location.origin+location.pathname.replace(/admin\.html$/,'')+'#sorry='+encode(values());status.style.display='block';status.textContent=link;try{await navigator.clipboard.writeText(link);status.textContent='Copied! Share this link:\n'+link;}catch(e){status.textContent='Copy it manually:\n'+link;}});
+document.getElementById('preview').addEventListener('click',()=>{const link=location.origin+location.pathname.replace(/admin\.html$/,'')+'#sorry='+encode(values());window.open(link,'_blank','noopener');});
+document.getElementById('reset').addEventListener('click',()=>{fields.forEach(el=>el.value=defaults[el.dataset.key]);save();status.style.display='block';status.textContent='Default text restored on this device.';});
+</script></body></html>
