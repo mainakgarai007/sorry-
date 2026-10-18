@@ -96,8 +96,10 @@ function syncContact(){
    if(digits.length>=8&&digits.length<=15)url='https://wa.me/'+digits;
    help='Enter your WhatsApp number with country code, digits only is best (India: 91…).';
  }else if(mode==='instagram'){
-   if(/^[A-Za-z0-9._]{1,30}$/.test(clean))url='https://ig.me/m/'+clean;
-   help='Enter your Instagram username, with or without @.';
+   // Profile URLs are more consistently handled by Instagram app/webviews than ig.me DM deep links.
+   // Visitors can tap Message on the profile; a custom direct-message URL can still be supplied via Custom.
+   if(/^[A-Za-z0-9._]{1,30}$/.test(clean))url='https://www.instagram.com/'+clean+'/';
+   help='Enter your Instagram username, with or without @. Visitors open your profile and tap Message.';
  }else if(mode==='messenger'){
    if(/^[A-Za-z0-9.]{3,100}$/.test(clean))url='https://m.me/'+clean;
    help='Enter your Facebook username or page username.';
