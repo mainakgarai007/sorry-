@@ -97,7 +97,7 @@ document.getElementById('preview').addEventListener('click',async()=>{
  showStatus('Preparing preview…');
  try{
   const payload=await encodePayload(values());
-  const link=location.origin+location.pathname.replace(new RegExp('admin\\\\.html$'),'')+'#s='+payload;
+  const link=location.origin+location.pathname.slice(0,location.pathname.lastIndexOf('/')+1)+'#s='+payload;
   if(previewWindow){
    previewWindow.opener=null;
    previewWindow.location.replace(link);
