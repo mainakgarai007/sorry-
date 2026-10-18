@@ -208,7 +208,10 @@ function refreshDashboard(){
  }else{
   clicks.slice(-20).reverse().forEach(event=>{
    const idx=events.indexOf(event);
-   const nextPage=events.slice(idx+1).find(e=>e.type==='page_reached');
+   const following=events.slice(idx+1);
+   const nextClickIndex=following.findIndex(e=>e.type==='button_click');
+   const responseWindow=nextClickIndex<0?following:following.slice(0,nextClickIndex);
+   const nextPage=responseWindow.find(e=>e.type==='page_reached');
    const card=document.createElement('div');
    card.style.cssText='border:1px solid var(--line);border-radius:14px;background:#fff;padding:12px;margin:9px 0;box-shadow:0 3px 12px #5e367510';
    const head=document.createElement('div');
