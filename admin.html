@@ -47,9 +47,12 @@ button{border:0;border-radius:13px;padding:12px 15px;font:700 15px system-ui;cur
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px">
 <div style="padding:14px;border:1px solid var(--line);border-radius:14px;background:#fff"><div class="hint">Saved links on this device</div><strong id="dashLinkCount" style="font-size:25px">0</strong></div>
 <div style="padding:14px;border:1px solid var(--line);border-radius:14px;background:#fff"><div class="hint">Contact button</div><strong id="dashContactState">Not set</strong></div>
+<div style="padding:14px;border:1px solid var(--line);border-radius:14px;background:#fff"><div class="hint">Local page views</div><strong id="dashPageViews" style="font-size:25px">0</strong></div>
+<div style="padding:14px;border:1px solid var(--line);border-radius:14px;background:#fff"><div class="hint">Local button clicks</div><strong id="dashButtonClicks" style="font-size:25px">0</strong></div>
 <div style="padding:14px;border:1px solid var(--line);border-radius:14px;background:#fff"><div class="hint">Cloud analytics</div><strong id="dashCloudState">Not connected</strong></div>
 </div>
-<p id="dashPrivacyNote" class="hint">This dashboard currently shows only data stored on this phone. Visitor progress and messages are not displayed unless secure cloud access is configured.</p>
+<p id="dashPrivacyNote" class="hint">Local analytics include only visits and clicks recorded in this same browser on this device. They cannot show other people's visits unless secure cloud access is configured.</p>
+<div id="localAnalytics" style="margin-top:12px"><h4 style="margin:8px 0">Recent local activity</h4><p class="hint">No local activity yet.</p></div>
 <div class="actions"><button class="secondary" type="button" id="refreshDashboard">↻ Refresh dashboard</button><button class="secondary" type="button" id="openFirebaseGuide">Firebase setup guide</button></div>
 <div id="dashDetails" class="status" style="display:block">Cloud visitor analytics: not connected. Public read access to private messages or visitor records will not be enabled.</div>
 </fieldset>
@@ -127,9 +130,21 @@ function refreshDashboard(){
  document.getElementById('dashLinkCount').textContent=String(list.length);
  const contact=(document.getElementById('contactUrl')?.value||'').trim();
  document.getElementById('dashContactState').textContent=contact?'Configured':'Not set';
+ const events=[];try{events.push(...JSON.parse(localStorage.getItem('sorryLocalEventsV1')||'[]'))}catch(e){}
+ document.getElementById('dashPageViews').textContent=String(events.filter(e=>e.type==='page_reached'||e.type==='link_opened').length);
+ document.getElementById('dashButtonClicks').textContent=String(events.filter(e=>e.type==='button_click').length);
  const cloud=document.getElementById('dashCloudState');
  cloud.textContent='Not connected';
- document.getElementById('dashDetails').textContent='Cloud visitor analytics and messages are not connected to this dashboard yet. Current Firestore rules reject these collection accesses; keep private data private.';
+ const activity=document.getElementById('localAnalytics');
+ activity.innerHTML='<h4 style="margin:8px 0">Recent local activity</h4>';
+ if(!events.length){activity.insertAdjacentHTML('beforeend','<p class="hint">No local activity yet. Open the public sorry page in this same browser and interact with it to test tracking.</p>');}
+ else events.slice(-8).reverse().forEach(event=>{
+  const row=document.createElement('p');row.className='hint';
+  const date=new Date(event.time);
+  row.textContent=(Number.isNaN(date.getTime())?'':date.toLocaleString()+' — ')+event.type+(event.extra&&event.extra.page?' · '+event.extra.page:'')+(event.extra&&event.extra.buttonId?' · '+event.extra.buttonId:'');
+  activity.appendChild(row);
+ });
+ document.getElementById('dashDetails').textContent='Local analytics only. Firestore cloud analytics and messages are not connected; no Firestore rules were changed.';
 }
 document.getElementById('refreshDashboard').addEventListener('click',refreshDashboard);
 document.getElementById('openFirebaseGuide').addEventListener('click',()=>window.open('https://github.com/mainakgarai007/sorry-/blob/main/FIREBASE-SETUP.md','_blank','noopener'));
