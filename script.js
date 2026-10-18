@@ -9,16 +9,18 @@
     const oldMatch = location.hash.match(/(?:^#|&)sorry=([A-Za-z0-9_-]+)/);
     if (shortMatch) {
       const token = shortMatch[1];
-      const binary = atob(token.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4-token.length%4)%4));
+      const mode = token[0];
+      const encoded = token.slice(1);
+      const binary = atob(encoded.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4-encoded.length%4)%4));
       const bytes = Uint8Array.from(binary, ch => ch.charCodeAt(0));
-      if (token.startsWith('z')) {
+      if (mode === 'z') {
         if (!('DecompressionStream' in window)) throw new Error('This browser cannot decompress this link. Try Chrome.');
-        const stream = new Blob([bytes.slice(1)]).stream().pipeThrough(new DecompressionStream('gzip'));
+        const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
         data = JSON.parse(new TextDecoder().decode(await new Response(stream).arrayBuffer()));
-      } else if (token.startsWith('j')) {
-        data = JSON.parse(new TextDecoder().decode(bytes.slice(1)));
-      } else {
+      } else if (mode === 'j') {
         data = JSON.parse(new TextDecoder().decode(bytes));
+      } else {
+        throw new Error('Unknown link format');
       }
     } else if (oldMatch) {
       const token = oldMatch[1].replace(/-/g, '+').replace(/_/g, '/');
