@@ -36,7 +36,13 @@
       '.title-screen-3':'finalTitle','.sub-screen-3':'finalBody','#btn-infinite-love':'finalBtn'
     };
     Object.entries(map).forEach(([selector,key])=>{if(typeof data[key]==='string')setText(selector,data[key].slice(0,800));});
-  } catch(error) { console.warn('Custom sorry link could not be read.',error); }
+  } catch(error) {
+    console.error('Custom sorry link could not be read.',error);
+    const notice=document.createElement('div');
+    notice.textContent='This custom link could not be decoded. Please create a new link from Creator Studio and open it in Chrome.';
+    notice.style.cssText='position:fixed;z-index:99999;left:12px;right:12px;bottom:12px;padding:12px;border-radius:12px;background:#fff0e7;color:#382640;font:14px system-ui;box-shadow:0 4px 18px #0002';
+    document.body.appendChild(notice);
+  }
 })();
 
 // Screen Elements
