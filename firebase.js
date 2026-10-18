@@ -108,6 +108,9 @@
     open.textContent = "💌 Contact me";
     open.hidden = !window.sorryContactUrl;
     document.body.appendChild(open);
+    if (typeof window.applySorryContact === "function") {
+      window.applySorryContact(window.sorryContactUrl, window.sorryContactLabel || "Contact me");
+    }
 
     const fab = document.createElement("button");
     fab.id = "sorry-tools-fab";
