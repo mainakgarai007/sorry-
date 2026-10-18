@@ -38,7 +38,10 @@ button{border:0;border-radius:13px;padding:12px 15px;font:700 15px system-ui;cur
 <fieldset><legend>Final page</legend>
 <label for="finalTitle">Heading</label><input id="finalTitle" data-key="finalTitle" maxlength="180" value="Thank You for Forgiving Me ❤️">
 <label for="finalBody">Message</label><textarea id="finalBody" data-key="finalBody" maxlength="800">You mean the absolute world to me. My heart only finds peace when you smile... 🥺💑✨</textarea>
-<label for="finalBtn">Final button</label><input id="finalBtn" data-key="finalBtn" maxlength="100" value="Love You to Infinity ∞ 💖"></fieldset>
+<label for="finalBtn">Final button</label><input id="finalBtn" data-key="finalBtn" maxlength="100" value="Love You to Infinity ∞ 💖">
+<label for="contactLabel">Optional contact button text</label><input id="contactLabel" data-key="contactLabel" maxlength="80" value="Contact me">
+<label for="contactUrl">Optional contact link (website, WhatsApp URL, mailto:, or tel:)</label><input id="contactUrl" data-key="contactUrl" maxlength="500" placeholder="https://… or mailto:you@example.com">
+<p class="hint">Leave the contact link blank to keep the button hidden on the final page.</p></fieldset>
 <div class="actions"><button class="primary" type="button" id="makeLink">🔗 Create share link</button><button class="secondary" type="button" id="preview">👀 Preview</button><button class="secondary" type="button" id="reset">Reset default text</button></div>
 <div id="status" class="status" role="status"></div><section id="savedLinks" class="hero" style="margin-top:18px"><h3>Saved links on this phone</h3></section>
 <p class="hint">Draft autosaves on this device. If browser data is cleared, the draft may be lost. To edit a shared link, edit the fields and create a new link; the old link remains unchanged.</p>
@@ -94,7 +97,7 @@ document.getElementById('preview').addEventListener('click',async()=>{
  showStatus('Preparing preview…');
  try{
   const payload=await encodePayload(values());
-  const link=location.origin+location.pathname.replace(/admin\\.html$/,'')+'#s='+payload;
+  const link=location.origin+location.pathname.replace(new RegExp('admin\\\\.html$'),'')+'#s='+payload;
   if(previewWindow){
    previewWindow.opener=null;
    previewWindow.location.replace(link);
